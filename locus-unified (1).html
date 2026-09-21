@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Locus — Full Prototype</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #fafafa;
+    --border: #e5e5e5;
+    --border-strong: #d4d4d4;
+    --text: #1a1a1a;
+    --text2: #6b6b6b;
+    --text3: #a0a0a0;
+    --accent: #185fa5;
+    --accent-bg: #e6f1fb;
+    --warn: #633806;
+    --warn-bg: #faeeda;
+    --danger: #791f1f;
+    --danger-bg: #fcebeb;
+    --success: #3b6d11;
+    --success-bg: #eef6ec;
+    --radius: 8px;
+    --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--sans); background: #f0f0ef; color: var(--text); font-size: 14px; }
+
+  .browser-frame { max-width: 1100px; margin: 24px auto; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); min-height: 600px; }
+  .browser-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .browser-dots { display: flex; gap: 6px; }
+  .browser-dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--border-strong); }
+  .browser-url { flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: 12px; color: var(--text3); }
+
+  /* ===== AUTH SCREENS (signup / connect / success) ===== */
+  .step-progress { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 22px 0 0; }
+  .step-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-strong); transition: background 0.2s, transform 0.2s; }
+  .step-dot.active { background: var(--text); transform: scale(1.3); }
+  .step-line { width: 28px; height: 1px; background: var(--border); }
+
+  .auth-body { padding: 36px 64px 50px; }
+  .brand-mark { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 22px; }
+  .brand-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--accent-bg); display: flex; align-items: center; justify-content: center; }
+  .brand-icon i { font-size: 16px; color: var(--accent); }
+  .brand-name { font-weight: 600; font-size: 15px; }
+  .slogan { text-align: center; font-size: 14px; font-weight: 500; color: var(--text); margin: 0 0 24px; }
+
+  .form-shell { max-width: 360px; margin: 0 auto; }
+  .form-shell h1 { font-size: 18px; font-weight: 600; text-align: center; margin: 0 0 6px; }
+  .form-shell .subtitle { font-size: 12.5px; color: var(--text2); text-align: center; margin: 0 0 24px; }
+
+  .field-group { margin-bottom: 13px; position: relative; }
+  .field-label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 5px; }
+  .field-input { width: 100%; height: 40px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 14px; font-size: 13px; font-family: var(--sans); outline: none; transition: border-color 0.15s; background: #fffef9; }
+  .field-input:focus { border-color: var(--border-strong); background: #fff; }
+  .autofill-badge { position: absolute; right: 10px; top: 28px; font-size: 9.5px; color: var(--text3); background: var(--surface); padding: 2px 6px; border-radius: 4px; }
+  .field-error { font-size: 11px; color: var(--danger); margin-top: 4px; display: none; }
+  .field-group.has-error .field-input { border-color: var(--danger); }
+  .field-group.has-error .field-error { display: block; }
+
+  .primary-btn { width: 100%; height: 40px; background: var(--text); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; margin-top: 4px; transition: opacity 0.15s; }
+  .primary-btn:hover { opacity: 0.88; }
+  .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .fine-print { font-size: 11px; color: var(--text3); text-align: center; margin-top: 13px; line-height: 1.5; }
+  .auth-switch-link { font-size: 12px; color: var(--text2); text-align: center; margin-top: 16px; }
+  .auth-switch-link span { color: var(--text); font-weight: 500; cursor: pointer; text-decoration: underline; }
+  .auth-switch-link span:hover { color: var(--accent); }
+  .forgot-link { font-size: 11.5px; color: var(--text2); text-align: right; margin: -5px 0 16px; cursor: pointer; text-decoration: underline; }
+
+  .connect-shell { max-width: 460px; margin: 0 auto; }
+  .connect-shell h1 { font-size: 18px; font-weight: 600; text-align: center; margin: 0 0 6px; }
+  .connect-shell .subtitle { font-size: 12.5px; color: var(--text2); text-align: center; margin: 0 0 24px; }
+
+  .source-card-row { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 13px; margin-bottom: 9px; transition: border-color 0.2s, background 0.2s; }
+  .source-card-row.connected { border-color: var(--success); background: var(--success-bg); }
+  .source-card-row.error { border-color: var(--danger); background: var(--danger-bg); }
+  .source-icon-wrap { width: 34px; height: 34px; border-radius: 9px; background: var(--surface); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .source-icon-wrap i { font-size: 17px; color: var(--text2); }
+  .source-info { flex: 1; min-width: 0; }
+  .source-name-text { font-size: 13.5px; font-weight: 500; margin: 0 0 1px; }
+  .source-status-line { font-size: 11.5px; color: var(--text3); margin: 0; }
+  .source-status-line.ok { color: var(--success); }
+  .source-status-line.err { color: var(--danger); }
+  .connect-btn { font-size: 12px; padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: #fff; color: var(--text); cursor: pointer; flex-shrink: 0; white-space: nowrap; }
+  .connect-btn:hover { background: var(--surface); }
+  .connect-btn.connecting { color: var(--text3); cursor: default; }
+  .connect-btn.retry { border-color: var(--danger); color: var(--danger); }
+  .connected-check { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--success); font-weight: 500; flex-shrink: 0; }
+  .connected-check i { font-size: 15px; }
+  .connect-continue-row { margin-top: 20px; }
+  .required-hint { font-size: 11px; color: var(--text3); text-align: center; margin-top: 9px; }
+
+  .oauth-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); align-items: center; justify-content: center; z-index: 50; }
+  .oauth-overlay.open { display: flex; }
+  .oauth-modal { background: #fff; border-radius: 12px; width: 340px; padding: 26px 24px; text-align: center; }
+  .oauth-modal-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--surface); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; }
+  .oauth-modal-icon i { font-size: 22px; color: var(--text2); }
+  .oauth-modal h3 { font-size: 14px; margin: 0 0 5px; }
+  .oauth-modal p { font-size: 12px; color: var(--text2); margin: 0 0 18px; line-height: 1.5; }
+  .oauth-modal-actions { display: flex; gap: 9px; }
+  .oauth-allow-btn, .oauth-deny-btn { flex: 1; height: 36px; border-radius: var(--radius); font-size: 12.5px; cursor: pointer; border: 1px solid var(--border); }
+  .oauth-allow-btn { background: var(--text); color: #fff; border-color: var(--text); }
+  .oauth-deny-btn { background: #fff; color: var(--text2); }
+
+  /* Syncing screen */
+  .sync-shell { max-width: 380px; margin: 0 auto; text-align: center; }
+  .sync-icon-wrap { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-bg); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  .sync-icon-wrap i { font-size: 26px; color: var(--accent); animation: spin 1.4s linear infinite; }
+  .sync-shell h1 { font-size: 18px; font-weight: 600; margin: 0 0 6px; }
+  .sync-shell .subtitle { font-size: 12.5px; color: var(--text2); margin: 0 0 28px; }
+
+  .sync-steps { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+  .sync-step { display: flex; align-items: center; gap: 12px; opacity: 0.35; transition: opacity 0.3s; }
+  .sync-step.active { opacity: 1; }
+  .sync-step.done { opacity: 0.7; }
+  .sync-step-icon { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--border-strong); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s; }
+  .sync-step.active .sync-step-icon { border-color: var(--accent); }
+  .sync-step.active .sync-step-icon i { animation: spin 1s linear infinite; color: var(--accent); font-size: 13px; }
+  .sync-step.done .sync-step-icon { background: var(--success); border-color: var(--success); }
+  .sync-step.done .sync-step-icon i { color: #fff; font-size: 13px; }
+  .sync-step-label { font-size: 13px; color: var(--text); }
+  .sync-step.active .sync-step-label { font-weight: 500; }
+
+  .sync-progress-bar-track { width: 100%; height: 4px; background: var(--surface); border-radius: 4px; margin: 26px 0 6px; overflow: hidden; }
+  .sync-progress-bar-fill { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.5s ease; }
+  .sync-progress-pct { font-size: 11.5px; color: var(--text3); text-align: right; }
+
+  /* ===== APP SHELL (home / log / pulse) ===== */
+  .app-body { padding: 28px 48px 56px; }
+  .app-shell { max-width: 900px; margin: 0 auto; }
+  .topnav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .nav-links { display: flex; align-items: center; gap: 22px; font-size: 13px; color: var(--text2); }
+  .nav-links span.active { color: var(--text); font-weight: 600; }
+  .nav-links span { cursor: pointer; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: #f1f1f1; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #555; }
+
+  .page-header { margin-bottom: 20px; }
+  .page-title { font-size: 20px; font-weight: 600; margin: 0; }
+  .page-subtitle { font-size: 13px; color: var(--text2); margin: 4px 0 0; }
+
+  /* Composer */
+  .composer-wrap { margin-bottom: 14px; }
+  .composer-input-row { position: relative; }
+  .composer-input-row i.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text3); }
+  #query-input { width: 100%; height: 48px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 90px 0 44px; font-size: 14px; font-family: var(--sans); outline: none; transition: border-color 0.15s; }
+  #query-input:focus { border-color: var(--border-strong); }
+  #ask-btn { position: absolute; right: 6px; top: 6px; height: 36px; background: var(--text); color: #fff; border: none; border-radius: 6px; padding: 0 16px; font-size: 13px; font-weight: 500; cursor: pointer; }
+  #ask-btn:hover { opacity: 0.85; }
+  .chips { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .chip { font-size: 12px; padding: 6px 14px; border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); background: #fff; cursor: pointer; }
+  .chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .recent-searches { margin-top: 14px; }
+  .recent-searches-label { font-size: 11px; color: var(--text3); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .recent-search-row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; cursor: pointer; border-radius: 6px; }
+  .recent-search-row:hover { background: var(--surface); }
+  .recent-search-row i { font-size: 13px; color: var(--text3); flex-shrink: 0; }
+  .recent-search-text { font-size: 12.5px; color: var(--text2); flex: 1; }
+  .recent-search-time { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+  /* Dashboard */
+  .stat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+  .stat-card { background: var(--surface); border-radius: var(--radius); padding: 16px 18px; }
+  .stat-label { font-size: 12px; color: var(--text3); margin: 0 0 4px; }
+  .stat-value { font-size: 26px; font-weight: 600; margin: 0; }
+  .section-label { font-size: 12px; color: var(--text3); margin: 0 0 10px; }
+  .dashboard-columns { display: flex; flex-direction: column; gap: 20px; }
+
+  .source-grid { display: flex; flex-direction: row; gap: 10px; margin-bottom: 16px; }
+  .source-tile { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex: 1; }
+  .source-tile i { font-size: 18px; color: var(--text2); }
+  .source-name { font-size: 13px; margin: 0; }
+  .source-status { font-size: 11px; margin: 0; }
+  .status-ok { color: var(--success); }
+  .status-warn { color: #ba7517; }
+
+  .capture-list { display: flex; flex-direction: column; gap: 8px; }
+  .capture-item { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color 0.15s; }
+  .capture-item.expanded { border-color: var(--border-strong); }
+  .capture-row { padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .capture-row:hover { background: var(--surface); }
+  .type-pill { font-size: 11px; padding: 3px 10px; border-radius: var(--radius); flex-shrink: 0; font-weight: 500; }
+  .pill-decision { background: var(--accent-bg); color: var(--accent); }
+  .pill-action { background: var(--warn-bg); color: var(--warn); }
+  .pill-blocker { background: var(--danger-bg); color: var(--danger); }
+  .capture-text { font-size: 13px; margin: 0; flex: 1; }
+  .capture-meta { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+  .capture-chevron { font-size: 14px; color: var(--text3); flex-shrink: 0; transition: transform 0.15s; }
+  .capture-item.expanded .capture-chevron { transform: rotate(180deg); }
+  .capture-detail { display: none; padding: 4px 14px 16px 14px; border-top: 1px solid var(--border); background: var(--surface); }
+  .capture-item.expanded .capture-detail { display: block; }
+  .capture-item.is-superseded .capture-text { color: var(--text3); }
+  .capture-item.is-superseded .type-pill { opacity: 0.55; }
+  .capture-item.is-superseded .capture-meta { color: var(--text3); }
+
+  .detail-field { display: flex; gap: 10px; padding: 6px 0; font-size: 12.5px; }
+  .detail-field-label { color: var(--text3); min-width: 90px; flex-shrink: 0; }
+  .detail-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+  .detail-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .detail-action-btn { font-size: 12px; padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 5px; }
+  .detail-action-btn:hover { border-color: var(--border-strong); color: var(--text); }
+  .detail-action-btn.flag-active { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-bg); }
+  .status-tag { font-size: 10.5px; padding: 2px 8px; border-radius: 5px; flex-shrink: 0; font-weight: 500; }
+  .status-current { background: var(--success-bg); color: var(--success); }
+  .status-superseded { background: #f1f1f0; color: var(--text3); }
+
+  .flag-panel { display: none; margin-top: 8px; padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); }
+  .flag-panel.open { display: block; }
+  .flag-panel-label { font-size: 12px; color: var(--text2); margin: 0 0 8px; }
+  .flag-reason-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .flag-reason-pill { font-size: 11.5px; padding: 5px 11px; border-radius: var(--radius); border: 1px solid var(--border); background: #fff; color: var(--text2); cursor: pointer; }
+  .flag-reason-pill.selected { background: var(--text); color: #fff; border-color: var(--text); }
+  .flag-note { width: 100%; font-size: 12.5px; font-family: var(--sans); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; resize: vertical; min-height: 50px; margin-bottom: 10px; outline: none; box-sizing: border-box; }
+  .flag-submit-row { display: flex; gap: 8px; justify-content: flex-end; }
+  .flag-cancel-btn, .flag-submit-btn { font-size: 12px; padding: 6px 14px; border-radius: var(--radius); cursor: pointer; border: 1px solid var(--border); }
+  .flag-cancel-btn { background: #fff; color: var(--text2); }
+  .flag-submit-btn { background: var(--text); color: #fff; border-color: var(--text); }
+  .flagged-note { display: none; margin-top: 8px; font-size: 12px; color: var(--danger); background: var(--danger-bg); border-radius: var(--radius); padding: 8px 10px; }
+  .flagged-note.visible { display: block; }
+
+  /* Answer / results */
+  .toolbar-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .text-btn { font-size: 13px; color: var(--text2); background: none; border: none; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 0; }
+  .text-btn:hover { color: var(--text); }
+  .meta-tag { font-size: 12px; color: var(--text3); }
+  .echo-q { font-size: 15px; font-weight: 600; color: var(--text2); margin: 0 0 18px; }
+  .loading-row { font-size: 13px; color: var(--text3); padding: 24px 0; display: flex; align-items: center; gap: 8px; }
+  .spin { animation: spin 0.9s linear infinite; display: inline-flex; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .source-card-row-group { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 20px; }
+  .source-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; cursor: pointer; }
+  .source-card:hover { border-color: var(--border-strong); }
+  .source-card i { font-size: 16px; color: var(--text2); }
+  .source-card-title { font-size: 12.5px; margin: 8px 0 2px; font-weight: 500; }
+  .source-card-meta { font-size: 11px; color: var(--text3); margin: 0; }
+  .answer-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 16px; }
+  .answer-card p { font-size: 14.5px; line-height: 1.7; margin: 0; }
+  .view-all-btn { width: 100%; font-size: 13px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text); }
+  .view-all-btn:hover { border-color: var(--border-strong); }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filter-pill { font-size: 12px; padding: 6px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: #fff; color: var(--text2); cursor: pointer; }
+  .filter-pill.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .filter-pill:not(.active):hover { border-color: var(--border-strong); }
+
+  /* Decision Log table */
+  .log-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .toolbar-spacer { flex: 1; }
+  .toggle-superseded { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .log-table { width: 100%; border-collapse: collapse; }
+  .log-table th { text-align: left; font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 500; padding: 0 10px 8px; border-bottom: 1px solid var(--border); }
+  .log-row { cursor: pointer; }
+  .log-row:hover { background: var(--surface); }
+  .log-row.is-superseded { opacity: 0.5; }
+  .log-row.is-superseded:hover { opacity: 0.75; }
+  .log-row td { padding: 11px 10px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+  .log-type-pill { font-size: 10.5px; padding: 2px 9px; border-radius: 5px; font-weight: 500; white-space: nowrap; display: inline-block; }
+  .log-summary-cell { max-width: 320px; }
+  .log-meta-cell { color: var(--text3); font-size: 12px; white-space: nowrap; }
+  .log-confidence-cell { color: var(--text3); font-size: 12px; white-space: nowrap; }
+  .log-status-tag { font-size: 10px; padding: 1px 7px; border-radius: 5px; font-weight: 500; }
+  .log-detail-row { display: none; }
+  .log-detail-row.open { display: table-row; }
+  .log-detail-row td { padding: 0; border-bottom: 1px solid var(--border); }
+  .log-detail-content { padding: 14px 16px 16px; background: var(--surface); }
+
+  /* Pulse card */
+  .pulse-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 26px 28px; max-width: 520px; margin: 0 auto 16px; }
+  .pulse-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .pulse-week-label { font-size: 12px; color: var(--text3); font-weight: 500; letter-spacing: 0.3px; text-transform: uppercase; }
+  .pulse-nav-arrows { display: flex; gap: 4px; }
+  .pulse-arrow-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); }
+  .pulse-arrow-btn:hover { background: var(--surface); }
+  .pulse-arrow-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .pulse-date-range { font-size: 16px; font-weight: 600; margin: 2px 0 18px; }
+  .pulse-section { margin-bottom: 18px; }
+  .pulse-section:last-child { margin-bottom: 0; }
+  .pulse-section-header { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+  .pulse-section-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-decision { background: var(--accent); }
+  .dot-action { background: #c9941f; }
+  .dot-blocker { background: var(--danger); }
+  .pulse-section-title { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .pulse-section-count { font-size: 11.5px; color: var(--text3); }
+  .pulse-section-rationale { font-size: 11.5px; color: var(--text3); margin: -1px 0 9px 16px; font-style: italic; }
+  .pulse-item-row { display: flex; align-items: baseline; gap: 8px; padding: 4px 0 4px 16px; font-size: 13px; line-height: 1.5; }
+  .pulse-item-row::before { content: '—'; color: var(--text3); margin-left: -16px; margin-right: 0; flex-shrink: 0; }
+  .pulse-item-text { color: var(--text); }
+  .pulse-item-text:hover { color: var(--accent); }
+  .pulse-more-link { font-size: 12px; color: var(--accent); padding-left: 16px; margin-top: 4px; cursor: pointer; }
+  .pulse-more-link:hover { text-decoration: underline; }
+  .pulse-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .pulse-feedback { display: flex; gap: 8px; align-items: center; }
+  .pulse-feedback-label { font-size: 11.5px; color: var(--text3); }
+  .feedback-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); }
+  .feedback-btn:hover { background: var(--surface); }
+  .feedback-btn.selected-up { background: var(--success-bg); color: var(--success); border-color: var(--success-bg); }
+  .feedback-btn.selected-down { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-bg); }
+  .pulse-view-log-link { font-size: 12px; color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .pulse-view-log-link:hover { color: var(--text); }
+
+  .empty-msg { text-align: center; color: var(--text3); font-size: 13px; padding: 40px 0; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  @media (max-width: 720px) {
+    .app-body { padding: 24px 20px; }
+    .auth-body { padding: 28px 24px 40px; }
+    .nav-links { gap: 12px; font-size: 12px; }
+    .stat-grid, .source-card-row-group { grid-template-columns: 1fr; }
+    .dashboard-columns { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="browser-frame">
+  <div class="browser-bar">
+    <div class="browser-dots"><span></span><span></span><span></span></div>
+    <div class="browser-url" id="url-bar">locus.app/signup</div>
+  </div>
+
+  <div class="step-progress" id="step-progress">
+    <div class="step-dot active" id="dot-1"></div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-line"></div>
+    <div class="step-dot" id="dot-3"></div>
+  </div>
+
+  <!-- ============ SIGNUP ============ -->
+  <div class="view active" id="signup-view">
+    <div class="auth-body">
+      <div class="brand-mark"><div class="brand-icon"><i class="ti ti-target"></i></div><span class="brand-name">Locus</span></div>
+      <p class="slogan">Never lose a team decision again.</p>
+      <div class="form-shell">
+        <h1>Create your account</h1>
+        <p class="subtitle">Connects to Slack, Notion, and Gmail to capture what your team decided — searchable, cited, and instant.</p>
+
+        <div class="field-group" id="name-group">
+          <label class="field-label">Full name</label>
+          <input class="field-input" id="name-input" type="text" value="Jun Zhou" />
+          <span class="autofill-badge">Autofilled</span>
+          <p class="field-error">Enter your name to continue</p>
+        </div>
+
+        <div class="field-group" id="email-group">
+          <label class="field-label">Work email</label>
+          <input class="field-input" id="email-input" type="email" value="jun@locus-demo.com" />
+          <span class="autofill-badge">Autofilled</span>
+          <p class="field-error">Enter a valid email address</p>
+        </div>
+
+        <button class="primary-btn" id="signup-submit-btn">Continue</button>
+        <p class="auth-switch-link">Already have an account? <span id="go-to-login">Log in</span></p>
+        <p class="fine-print">By continuing, you agree to Locus's Terms and Privacy Policy. We never store raw message content — only AI-classified summaries.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ LOGIN ============ -->
+  <div class="view" id="login-view">
+    <div class="auth-body">
+      <div class="brand-mark"><div class="brand-icon"><i class="ti ti-target"></i></div><span class="brand-name">Locus</span></div>
+      <div class="form-shell">
+        <h1>Log in</h1>
+        <p class="subtitle">Welcome back. Your sources are already connected.</p>
+
+        <div class="field-group" id="login-email-group">
+          <label class="field-label">Email</label>
+          <input class="field-input" id="login-email-input" type="email" value="jun@locus-demo.com" />
+          <span class="autofill-badge">Autofilled</span>
+        </div>
+
+        <div class="field-group" id="login-password-group">
+          <label class="field-label">Password</label>
+          <input class="field-input" id="login-password-input" type="password" placeholder="••••••••" />
+          <p class="field-error">Enter your password</p>
+          <p class="field-error" id="login-wrong-password" style="display:none;">Incorrect email or password</p>
+        </div>
+
+        <p class="forgot-link">Forgot password?</p>
+        <button class="primary-btn" id="login-submit-btn">Log in</button>
+        <p class="auth-switch-link">Don't have an account? <span id="go-to-signup">Sign up</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONNECT SOURCES ============ -->
+  <div class="view" id="connect-view">
+    <div class="auth-body">
+      <div class="brand-mark"><div class="brand-icon"><i class="ti ti-target"></i></div><span class="brand-name">Locus</span></div>
+      <div class="connect-shell">
+        <h1>Connect your sources</h1>
+        <p class="subtitle">Pick at least one. Locus will start capturing decisions, action items, and blockers automatically.</p>
+
+        <div class="source-card-row" id="card-slack" data-source="slack">
+          <div class="source-icon-wrap"><i class="ti ti-brand-slack"></i></div>
+          <div class="source-info"><p class="source-name-text">Slack</p><p class="source-status-line">Not connected</p></div>
+          <button class="connect-btn" data-action="connect">Connect</button>
+        </div>
+        <div class="source-card-row" id="card-notion" data-source="notion">
+          <div class="source-icon-wrap"><i class="ti ti-notes"></i></div>
+          <div class="source-info"><p class="source-name-text">Notion</p><p class="source-status-line">Not connected</p></div>
+          <button class="connect-btn" data-action="connect">Connect</button>
+        </div>
+        <div class="source-card-row" id="card-gmail" data-source="gmail">
+          <div class="source-icon-wrap"><i class="ti ti-mail"></i></div>
+          <div class="source-info"><p class="source-name-text">Gmail</p><p class="source-status-line">Not connected</p></div>
+          <button class="connect-btn" data-action="connect">Connect</button>
+        </div>
+
+        <div class="connect-continue-row">
+          <button class="primary-btn" id="connect-continue-btn" disabled>Continue</button>
+          <p class="required-hint" id="required-hint">Connect at least 1 source to continue</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SYNCING ============ -->
+  <div class="view" id="syncing-view">
+    <div class="auth-body">
+      <div class="sync-shell">
+        <div class="sync-icon-wrap"><i class="ti ti-refresh"></i></div>
+        <h1>Setting up your workspace</h1>
+        <p class="subtitle">This usually takes under a minute. Feel free to wait, or head to your dashboard now — we'll keep going in the background.</p>
+
+        <div class="sync-steps">
+          <div class="sync-step" id="sync-step-1">
+            <div class="sync-step-icon"><i class="ti ti-download"></i></div>
+            <span class="sync-step-label">Pulling your recent messages and pages</span>
+          </div>
+          <div class="sync-step" id="sync-step-2">
+            <div class="sync-step-icon"><i class="ti ti-sparkles"></i></div>
+            <span class="sync-step-label">Classifying decisions, action items, and blockers</span>
+          </div>
+          <div class="sync-step" id="sync-step-3">
+            <div class="sync-step-icon"><i class="ti ti-check"></i></div>
+            <span class="sync-step-label">Almost done</span>
+          </div>
+        </div>
+
+        <div class="sync-progress-bar-track"><div class="sync-progress-bar-fill" id="sync-progress-fill"></div></div>
+        <p class="sync-progress-pct" id="sync-progress-pct">0%</p>
+
+        <button class="primary-btn" id="sync-skip-btn" style="margin-top:20px;">Go to dashboard now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SUCCESS ============ -->
+  <div class="view" id="success-view">
+    <div class="auth-body">
+      <div class="form-shell" style="text-align:center;">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--success-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <i class="ti ti-check" style="font-size:26px;color:var(--success);"></i>
+        </div>
+        <h1>You're all set</h1>
+        <p class="subtitle">Locus is now watching your connected sources. It'll take a few minutes for your first decisions and action items to appear on your dashboard.</p>
+        <button class="primary-btn" id="go-home-btn">Go to dashboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <div class="view" id="home-view">
+    <div class="app-body">
+      <div class="app-shell">
+        <div class="topnav">
+          <div class="brand"><div class="brand-icon"><i class="ti ti-target"></i></div><span class="brand-name">Locus</span></div>
+          <div class="nav-links">
+            <span id="nav-home" class="active">Home</span>
+            <span id="nav-log">Decision log</span>
+            <span id="nav-pulse">Pulse</span>
+            <span>Settings</span>
+            <div class="avatar">JZ</div>
+          </div>
+        </div>
+
+        <div class="composer-wrap">
+          <div class="composer-input-row">
+            <i class="ti ti-search search-icon"></i>
+            <input id="query-input" type="text" placeholder="Ask about a decision, blocker, or thread..." />
+            <button id="ask-btn">Ask</button>
+          </div>
+          <div class="chips" id="chips">
+            <button class="chip" data-q="What did we decide about the Q3 timeline?">What did we decide about the Q3 timeline?</button>
+            <button class="chip" data-q="Any open blockers from this week?">Any open blockers from this week?</button>
+          </div>
+          <div class="recent-searches" id="recent-searches">
+            <p class="recent-searches-label">Recent searches</p>
+            <div class="recent-search-row" data-q="What did we decide about onboarding flow?"><i class="ti ti-history"></i><span class="recent-search-text">What did we decide about onboarding flow?</span><span class="recent-search-time">2h ago</span></div>
+            <div class="recent-search-row" data-q="Who owns the legal sign-off blocker?"><i class="ti ti-history"></i><span class="recent-search-text">Who owns the legal sign-off blocker?</span><span class="recent-search-time">Yesterday</span></div>
+          </div>
+        </div>
+
+        <div id="dashboard-view">
+
+          <div class="stat-grid" style="margin-bottom:16px;">
+            <div class="stat-card"><p class="stat-label">Decisions</p><p class="stat-value">7</p></div>
+            <div class="stat-card"><p class="stat-label">Action items</p><p class="stat-value">12</p></div>
+            <div class="stat-card"><p class="stat-label">Blockers</p><p class="stat-value">2</p></div>
+          </div>
+
+          <p class="section-label">Sources</p>
+          <div class="source-grid">
+            <div class="source-tile"><i class="ti ti-brand-slack"></i><div><p class="source-name">Slack</p><p class="source-status status-ok">Synced 2m ago</p></div></div>
+            <div class="source-tile"><i class="ti ti-notes"></i><div><p class="source-name">Notion</p><p class="source-status status-ok">Synced 5m ago</p></div></div>
+            <div class="source-tile"><i class="ti ti-mail"></i><div><p class="source-name">Gmail</p><p class="source-status status-warn">Token expiring</p></div></div>
+          </div>
+
+          <div class="dashboard-columns">
+              <div>
+              <p class="section-label">Recent captures</p>
+              <div class="capture-list" id="capture-list">
+
+                <div class="capture-item" data-capture-id="0" data-log-row="0">
+                  <div class="capture-row">
+                    <span class="type-pill pill-decision">Decision</span>
+                    <p class="capture-text">Team agreed to ship the v1 onboarding flow without SSO support</p>
+                    <span class="capture-meta">Slack · 3h ago</span>
+                    <i class="ti ti-chevron-down capture-chevron"></i>
+                  </div>
+                  <div class="capture-detail">
+                    <div class="detail-field"><span class="detail-field-label">Summary</span><span>Team agreed to ship the v1 onboarding flow without SSO support, prioritizing speed to launch over enterprise readiness.</span></div>
+                    <hr class="detail-divider" />
+                    <div class="detail-field"><span class="detail-field-label">Participants</span><span>@jwest, @priya, @mtanaka</span></div>
+                    <div class="detail-field"><span class="detail-field-label">Source</span><span>Slack · #product-planning · Mar 12, 9:41am</span></div>
+                    <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.91 — confirmed decision</span></div>
+                    <div class="detail-field"><span class="detail-field-label">Status</span><span><span class="status-tag status-current">Current</span></span></div>
+                    <div class="detail-actions">
+                      <button class="detail-action-btn view-source-btn"><i class="ti ti-external-link"></i>View original</button>
+                      
+                    </div>
+                    <div class="flag-panel">
+                      <p class="flag-panel-label">Why are you flagging this?</p>
+                      <div class="flag-reason-row">
+                        <span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span>
+                        <span class="flag-reason-pill" data-reason="Outdated">Outdated</span>
+                        <span class="flag-reason-pill" data-reason="Other">Other</span>
+                      </div>
+                      <textarea class="flag-note" placeholder="Optional note"></textarea>
+                      <div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div>
+                    </div>
+                    <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+                  </div>
+                </div>
+
+                <div class="capture-item" data-capture-id="1" data-log-row="3">
+                  <div class="capture-row">
+                    <span class="type-pill pill-blocker">Blocker</span>
+                    <p class="capture-text">Design review blocked pending legal sign-off on new copy</p>
+                    <span class="capture-meta">Gmail · 1d ago</span>
+                    <i class="ti ti-chevron-down capture-chevron"></i>
+                  </div>
+                  <div class="capture-detail">
+                    <div class="detail-field"><span class="detail-field-label">Summary</span><span>Design review is blocked because legal has not yet signed off on the updated onboarding copy.</span></div>
+                    <hr class="detail-divider" />
+                    <div class="detail-field"><span class="detail-field-label">Participants</span><span>@dlee, legal@client.com</span></div>
+                    <div class="detail-field"><span class="detail-field-label">Source</span><span>Gmail · "Re: Copy review" · Mar 11, 4:02pm</span></div>
+                    <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.74 — possible decision</span></div>
+                    <div class="detail-actions">
+                      <button class="detail-action-btn view-source-btn"><i class="ti ti-external-link"></i>View original</button>
+                      
+                    </div>
+                    <div class="flag-panel">
+                      <p class="flag-panel-label">Why are you flagging this?</p>
+                      <div class="flag-reason-row">
+                        <span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span>
+                        <span class="flag-reason-pill" data-reason="Outdated">Outdated</span>
+                        <span class="flag-reason-pill" data-reason="Other">Other</span>
+                      </div>
+                      <textarea class="flag-note" placeholder="Optional note"></textarea>
+                      <div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div>
+                    </div>
+                    <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+                  </div>
+                </div>
+
+                <div class="capture-item is-superseded" data-capture-id="2" data-log-row="5">
+                  <div class="capture-row">
+                    <span class="type-pill pill-decision">Decision</span>
+                    <p class="capture-text">Original plan was to launch Q3 features on June 15</p>
+                    <span class="capture-meta">Slack · 5d ago</span>
+                    <i class="ti ti-chevron-down capture-chevron"></i>
+                  </div>
+                  <div class="capture-detail">
+                    <div class="detail-field"><span class="detail-field-label">Summary</span><span>Original plan was June 15, before the timeline was revisited and pushed to July 29.</span></div>
+                    <hr class="detail-divider" />
+                    <div class="detail-field"><span class="detail-field-label">Source</span><span>Slack · #product-planning · Mar 8, 2:30pm</span></div>
+                    <div class="detail-field"><span class="detail-field-label">Status</span><span><span class="status-tag status-superseded">Superseded</span> — replaced by the July 29 decision</span></div>
+                    <div class="detail-actions">
+                      <button class="detail-action-btn view-source-btn"><i class="ti ti-external-link"></i>View original</button>
+                      
+                    </div>
+                    <div class="flag-panel">
+                      <p class="flag-panel-label">Why are you flagging this?</p>
+                      <div class="flag-reason-row">
+                        <span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span>
+                        <span class="flag-reason-pill" data-reason="Outdated">Outdated</span>
+                        <span class="flag-reason-pill" data-reason="Other">Other</span>
+                      </div>
+                      <textarea class="flag-note" placeholder="Optional note"></textarea>
+                      <div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div>
+                    </div>
+                    <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="answer-view" style="display:none;">
+          <div class="toolbar-row">
+            <button class="text-btn" id="back-btn"><i class="ti ti-arrow-left"></i>Back to dashboard</button>
+          </div>
+          <p class="echo-q" id="echoed-q"></p>
+          <div id="loading-state" class="loading-row" style="display:none;"><span class="spin"><i class="ti ti-loader-2"></i></span> Searching your decision log...</div>
+          <div id="result-state" style="display:none;">
+            <p class="section-label">Sources (3 of 9)</p>
+            <div class="source-card-row-group">
+              <div class="source-card"><i class="ti ti-brand-slack"></i><p class="source-card-title">#product-planning</p><p class="source-card-meta">Mar 12 · 0.91</p></div>
+              <div class="source-card"><i class="ti ti-notes"></i><p class="source-card-title">Q3 Roadmap</p><p class="source-card-meta">Mar 14 · 0.87</p></div>
+              <div class="source-card"><i class="ti ti-mail"></i><p class="source-card-title">Re: Timeline check-in</p><p class="source-card-meta">Mar 15 · 0.78</p></div>
+            </div>
+            <div class="answer-card"><p>The team decided to push the Q3 timeline by two weeks. The original launch date conflicted with the design review cycle, so engineering and product agreed in #product-planning to move the ship date to <strong>July 29</strong>. This was confirmed again in the Q3 Roadmap doc update on Mar 14.</p></div>
+            <button class="view-all-btn" id="view-all-btn">View all 9 results <i class="ti ti-arrow-right"></i></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DECISION LOG ============ -->
+  <div class="view" id="log-view">
+    <div class="app-body">
+      <div class="app-shell">
+        <div class="topnav">
+          <div class="brand"><div class="brand-icon"><i class="ti ti-target"></i></div><span class="brand-name">Locus</span></div>
+          <div class="nav-links">
+            <span id="nav-home-2">Home</span>
+            <span id="nav-log-2" class="active">Decision log</span>
+            <span id="nav-pulse-2">Pulse</span>
+            <span>Settings</span>
+            <div class="avatar">JZ</div>
+          </div>
+        </div>
+
+        <div class="page-header">
+          <p class="page-title">Decision Log</p>
+          <p class="page-subtitle">Every captured decision, action item, and blocker — searchable and cited.</p>
+        </div>
+
+        <div class="log-toolbar">
+          <span class="filter-pill active" data-group="logtype" data-value="all">All types</span>
+          <span class="filter-pill" data-group="logtype" data-value="decision">Decision</span>
+          <span class="filter-pill" data-group="logtype" data-value="action">Action item</span>
+          <span class="filter-pill" data-group="logtype" data-value="blocker">Blocker</span>
+          <div class="toolbar-spacer"></div>
+          <label class="toggle-superseded"><input type="checkbox" id="show-superseded" /> Show superseded</label>
+        </div>
+
+        <table class="log-table">
+          <thead><tr><th style="width:90px;">Type</th><th>Summary</th><th style="width:140px;">Source</th><th style="width:80px;">Date</th><th style="width:70px;">Conf.</th><th style="width:90px;">Status</th></tr></thead>
+          <tbody id="log-tbody">
+
+            <tr class="log-row" data-type="decision" data-status="current" data-row="0">
+              <td><span class="log-type-pill pill-decision">Decision</span></td>
+              <td class="log-summary-cell">Engineering and product agreed to push the Q3 ship date to July 29</td>
+              <td class="log-meta-cell">Slack · #product-planning</td>
+              <td class="log-meta-cell">Mar 12</td>
+              <td class="log-confidence-cell">0.91</td>
+              <td><span class="log-status-tag status-current">Current</span></td>
+            </tr>
+            <tr class="log-detail-row" data-detail-for="0"><td colspan="6"><div class="log-detail-content">
+              <div class="detail-field"><span class="detail-field-label">Participants</span><span>@jwest, @priya, @mtanaka</span></div>
+              <div class="detail-field"><span class="detail-field-label">Source</span><span>Slack · #product-planning · Mar 12, 9:41am</span></div>
+              <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.91 — confirmed decision</span></div>
+              <div class="detail-actions"><button class="detail-action-btn"><i class="ti ti-external-link"></i>View original</button></div>
+              <div class="flag-panel"><p class="flag-panel-label">Why are you flagging this?</p><div class="flag-reason-row"><span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span><span class="flag-reason-pill" data-reason="Outdated">Outdated</span><span class="flag-reason-pill" data-reason="Other">Other</span></div><textarea class="flag-note" placeholder="Optional note"></textarea><div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div></div>
+              <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+            </div></td></tr>
+
+            <tr class="log-row" data-type="decision" data-status="current" data-row="1">
+              <td><span class="log-type-pill pill-decision">Decision</span></td>
+              <td class="log-summary-cell">Roadmap doc updated to reflect the new July 29 ship date</td>
+              <td class="log-meta-cell">Notion · Q3 Roadmap</td>
+              <td class="log-meta-cell">Mar 14</td>
+              <td class="log-confidence-cell">0.87</td>
+              <td><span class="log-status-tag status-current">Current</span></td>
+            </tr>
+            <tr class="log-detail-row" data-detail-for="1"><td colspan="6"><div class="log-detail-content">
+              <div class="detail-field"><span class="detail-field-label">Participants</span><span>@priya</span></div>
+              <div class="detail-field"><span class="detail-field-label">Source</span><span>Notion · Q3 Roadmap · Mar 14, 11:15am</span></div>
+              <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.87 — confirmed decision</span></div>
+              <div class="detail-actions"><button class="detail-action-btn"><i class="ti ti-external-link"></i>View original</button></div>
+              <div class="flag-panel"><p class="flag-panel-label">Why are you flagging this?</p><div class="flag-reason-row"><span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span><span class="flag-reason-pill" data-reason="Outdated">Outdated</span><span class="flag-reason-pill" data-reason="Other">Other</span></div><textarea class="flag-note" placeholder="Optional note"></textarea><div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div></div>
+              <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+            </div></td></tr>
+
+            <tr class="log-row" data-type="action" data-status="current" data-row="2">
+              <td><span class="log-type-pill pill-action">Action item</span></td>
+              <td class="log-summary-cell">PM to notify client services about the revised launch date</td>
+              <td class="log-meta-cell">Gmail · Timeline check-in</td>
+              <td class="log-meta-cell">Mar 15</td>
+              <td class="log-confidence-cell">0.78</td>
+              <td><span class="log-status-tag status-current">Current</span></td>
+            </tr>
+            <tr class="log-detail-row" data-detail-for="2"><td colspan="6"><div class="log-detail-content">
+              <div class="detail-field"><span class="detail-field-label">Participants</span><span>@jwest</span></div>
+              <div class="detail-field"><span class="detail-field-label">Source</span><span>Gmail · "Re: Timeline check-in" · Mar 15, 4:02pm</span></div>
+              <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.78 — possible decision</span></div>
+              <div class="detail-actions"><button class="detail-action-btn"><i class="ti ti-external-link"></i>View original</button></div>
+              <div class="flag-panel"><p class="flag-panel-label">Why are you flagging this?</p><div class="flag-reason-row"><span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span><span class="flag-reason-pill" data-reason="Outdated">Outdated</span><span class="flag-reason-pill" data-reason="Other">Other</span></div><textarea class="flag-note" placeholder="Optional note"></textarea><div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div></div>
+              <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+            </div></td></tr>
+
+            <tr class="log-row" data-type="blocker" data-status="current" data-row="3">
+              <td><span class="log-type-pill pill-blocker">Blocker</span></td>
+              <td class="log-summary-cell">Design review blocked pending legal sign-off on new copy</td>
+              <td class="log-meta-cell">Slack · #design-review</td>
+              <td class="log-meta-cell">Mar 11</td>
+              <td class="log-confidence-cell">0.74</td>
+              <td><span class="log-status-tag status-current">Current</span></td>
+            </tr>
+            <tr class="log-detail-row" data-detail-for="3"><td colspan="6"><div class="log-detail-content">
+              <div class="detail-field"><span class="detail-field-label">Participants</span><span>@dlee, legal@client.com</span></div>
+              <div class="detail-field"><span class="detail-field-label">Source</span><span>Slack · #design-review · Mar 11, 2:18pm</span></div>
+              <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.74 — possible decision</span></div>
+              <div class="detail-actions"><button class="detail-action-btn"><i class="ti ti-external-link"></i>View original</button></div>
+              <div class="flag-panel"><p class="flag-panel-label">Why are you flagging this?</p><div class="flag-reason-row"><span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span><span class="flag-reason-pill" data-reason="Outdated">Outdated</span><span class="flag-reason-pill" data-reason="Other">Other</span></div><textarea class="flag-note" placeholder="Optional note"></textarea><div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div></div>
+              <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+            </div></td></tr>
+
+            <tr class="log-row" data-type="action" data-status="current" data-row="4">
+              <td><span class="log-type-pill pill-action">Action item</span></td>
+              <td class="log-summary-cell">Update sprint calendar to reflect shifted milestones</td>
+              <td class="log-meta-cell">Notion · Q3 Roadmap</td>
+              <td class="log-meta-cell">Mar 14</td>
+              <td class="log-confidence-cell">0.68</td>
+              <td><span class="log-status-tag status-current">Current</span></td>
+            </tr>
+            <tr class="log-detail-row" data-detail-for="4"><td colspan="6"><div class="log-detail-content">
+              <div class="detail-field"><span class="detail-field-label">Participants</span><span>@priya</span></div>
+              <div class="detail-field"><span class="detail-field-label">Source</span><span>Notion · Q3 Roadmap · Mar 14, 11:20am</span></div>
+              <div class="detail-field"><span class="detail-field-label">Confidence</span><span>0.68 — possible decision</span></div>
+              <div class="detail-actions"><button class="detail-action-btn"><i class="ti ti-external-link"></i>View original</button></div>
+              <div class="flag-panel"><p class="flag-panel-label">Why are you flagging this?</p><div class="flag-reason-row"><span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span><span class="flag-reason-pill" data-reason="Outdated">Outdated</span><span class="flag-reason-pill" data-reason="Other">Other</span></div><textarea class="flag-note" placeholder="Optional note"></textarea><div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div></div>
+              <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+            </div></td></tr>
+
+            <tr class="log-row is-superseded" data-type="decision" data-status="superseded" data-row="5">
+              <td><span class="log-type-pill pill-decision">Decision</span></td>
+              <td class="log-summary-cell">Original plan was to launch Q3 features on June 15</td>
+              <td class="log-meta-cell">Slack · #product-planning</td>
+              <td class="log-meta-cell">Mar 8</td>
+              <td class="log-confidence-cell">0.85</td>
+              <td><span class="log-status-tag status-superseded">Superseded</span></td>
+            </tr>
+            <tr class="log-detail-row" data-detail-for="5"><td colspan="6"><div class="log-detail-content">
+              <div class="detail-field"><span class="detail-field-label">Participants</span><span>@jwest, @mtanaka</span></div>
+              <div class="detail-field"><span class="detail-field-label">Source</span><span>Slack · #product-planning · Mar 8, 2:30pm</span></div>
+              <div class="detail-field"><span class="detail-field-label">Status</span><span><span class="log-status-tag status-superseded">Superseded</span> — replaced by the July 29 decision</span></div>
+              <div class="detail-actions"><button class="detail-action-btn"><i class="ti ti-external-link"></i>View original</button></div>
+              <div class="flag-panel"><p class="flag-panel-label">Why are you flagging this?</p><div class="flag-reason-row"><span class="flag-reason-pill" data-reason="Inaccurate">Inaccurate</span><span class="flag-reason-pill" data-reason="Outdated">Outdated</span><span class="flag-reason-pill" data-reason="Other">Other</span></div><textarea class="flag-note" placeholder="Optional note"></textarea><div class="flag-submit-row"><button class="flag-cancel-btn">Cancel</button><button class="flag-submit-btn">Submit flag</button></div></div>
+              <p class="flagged-note">Flagged. Thanks — this helps improve future classifications.</p>
+            </div></td></tr>
+
+          </tbody>
+        </table>
+        <p class="empty-msg" id="log-empty-msg" style="display:none;">No items match these filters.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PULSE ============ -->
+  <div class="view" id="pulse-view">
+    <div class="app-body">
+      <div class="app-shell">
+        <div class="topnav">
+          <div class="brand"><div class="brand-icon"><i class="ti ti-target"></i></div><span class="brand-name">Locus</span></div>
+          <div class="nav-links">
+            <span id="nav-home-3">Home</span>
+            <span id="nav-log-3">Decision log</span>
+            <span id="nav-pulse-3" class="active">Pulse</span>
+            <span>Settings</span>
+            <div class="avatar">JZ</div>
+          </div>
+        </div>
+
+        <div class="page-header">
+          <p class="page-title">Pulse</p>
+          <p class="page-subtitle">Your week, synthesized. New every Monday.</p>
+        </div>
+
+        <div class="pulse-card">
+          <div class="pulse-card-top">
+            <span class="pulse-week-label">This week</span>
+            <div class="pulse-nav-arrows">
+              <button class="pulse-arrow-btn" id="pulse-prev"><i class="ti ti-chevron-left"></i></button>
+              <button class="pulse-arrow-btn" id="pulse-next" disabled><i class="ti ti-chevron-right"></i></button>
+            </div>
+          </div>
+          <p class="pulse-date-range" id="pulse-date-range">Mar 10 – Mar 16</p>
+
+          <div class="pulse-section">
+            <div class="pulse-section-header"><span class="pulse-section-dot dot-decision"></span><span class="pulse-section-title">Decisions</span><span class="pulse-section-count">5</span></div>
+            <p class="pulse-section-rationale">Top 3 by confidence and recency — 2 more below</p>
+            <div class="pulse-item-row"><span class="pulse-item-text" data-log-target="0">Q3 ship date moved to July 29 after the design review conflict surfaced</span></div>
+            <div class="pulse-item-row"><span class="pulse-item-text">Engineering confirmed the two-week buffer is enough — no scope cuts needed</span></div>
+            <div class="pulse-item-row"><span class="pulse-item-text">Client will be told proactively about the date change, not at next check-in</span></div>
+            <div class="pulse-more-link">+2 more in Decision Log</div>
+          </div>
+
+          <div class="pulse-section">
+            <div class="pulse-section-header"><span class="pulse-section-dot dot-action"></span><span class="pulse-section-title">Action items</span><span class="pulse-section-count">3</span></div>
+            <p class="pulse-section-rationale">All 3 captured this week shown</p>
+            <div class="pulse-item-row"><span class="pulse-item-text" data-log-target="2">Notify client services of the revised July 29 launch date</span></div>
+            <div class="pulse-item-row"><span class="pulse-item-text" data-log-target="4">Update sprint calendar to reflect shifted milestones</span></div>
+            <div class="pulse-item-row"><span class="pulse-item-text">Update public release notes once the date is finalized internally</span></div>
+          </div>
+
+          <div class="pulse-section">
+            <div class="pulse-section-header"><span class="pulse-section-dot dot-blocker"></span><span class="pulse-section-title">Blockers</span><span class="pulse-section-count">1</span></div>
+            <p class="pulse-section-rationale">Only blocker still active as of Sunday night</p>
+            <div class="pulse-item-row"><span class="pulse-item-text" data-log-target="3">Design review still blocked pending legal sign-off on new copy</span></div>
+          </div>
+
+          <div class="pulse-footer">
+            <div class="pulse-feedback"><span class="pulse-feedback-label">Useful?</span><button class="feedback-btn" id="thumb-up"><i class="ti ti-thumb-up"></i></button><button class="feedback-btn" id="thumb-down"><i class="ti ti-thumb-down"></i></button></div>
+            <span class="pulse-view-log-link" id="pulse-to-log">View full Decision Log <i class="ti ti-arrow-right"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- OAuth simulation overlay -->
+<div class="oauth-overlay" id="oauth-overlay">
+  <div class="oauth-modal">
+    <div class="oauth-modal-icon"><i class="ti ti-shield-lock" id="oauth-icon"></i></div>
+    <h3 id="oauth-title">Connect to Slack</h3>
+    <p id="oauth-desc">Locus is requesting permission to read messages in channels you select. You can revoke this access anytime.</p>
+    <div class="oauth-modal-actions">
+      <button class="oauth-deny-btn" id="oauth-deny-btn">Deny</button>
+      <button class="oauth-allow-btn" id="oauth-allow-btn">Allow access</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== VIEW ROUTER =====
+const allViews = {
+  signup: document.getElementById('signup-view'),
+  login: document.getElementById('login-view'),
+  connect: document.getElementById('connect-view'),
+  syncing: document.getElementById('syncing-view'),
+  success: document.getElementById('success-view'),
+  home: document.getElementById('home-view'),
+  log: document.getElementById('log-view'),
+  pulse: document.getElementById('pulse-view')
+};
+const stepProgress = document.getElementById('step-progress');
+const dots = [document.getElementById('dot-1'), document.getElementById('dot-2'), document.getElementById('dot-3')];
+const urlBar = document.getElementById('url-bar');
+
+function goTo(name, stepIndex, url) {
+  Object.values(allViews).forEach(v => v.classList.remove('active'));
+  allViews[name].classList.add('active');
+  if (stepIndex === null) {
+    stepProgress.style.display = 'none';
+  } else {
+    stepProgress.style.display = 'flex';
+    dots.forEach((d, i) => d.classList.toggle('active', i === stepIndex));
+  }
+  urlBar.textContent = url;
+}
+
+function validEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+// ===== SIGNUP =====
+const nameGroup = document.getElementById('name-group');
+const emailGroup = document.getElementById('email-group');
+const nameInput = document.getElementById('name-input');
+const emailInput = document.getElementById('email-input');
+
+document.getElementById('signup-submit-btn').addEventListener('click', () => {
+  goTo('connect', 1, 'locus.app/onboarding/connect');
+  setTimeout(() => {
+    document.getElementById('connect-continue-btn').disabled = false;
+    setTimeout(() => { goTo('syncing', 2, 'locus.app/onboarding/syncing'); runSyncAnimation(); }, 800);
+  }, 600);
+});
+
+document.getElementById('go-to-login').addEventListener('click', () => goTo('login', null, 'locus.app/login'));
+document.getElementById('go-to-signup').addEventListener('click', () => goTo('signup', 0, 'locus.app/signup'));
+
+document.getElementById('login-submit-btn').addEventListener('click', () => {
+  goTo('home', null, 'locus.app/home');
+});
+
+// ===== CONNECT SOURCES =====
+const oauthOverlay = document.getElementById('oauth-overlay');
+const oauthTitle = document.getElementById('oauth-title');
+const oauthDesc = document.getElementById('oauth-desc');
+const oauthIcon = document.getElementById('oauth-icon');
+let activeSource = null;
+let connectedCount = 0;
+
+const sourceMeta = {
+  slack: { label: 'Slack', icon: 'ti-brand-slack', desc: 'Locus is requesting permission to read messages in channels you select. You can revoke this access anytime.' },
+  notion: { label: 'Notion', icon: 'ti-notes', desc: 'Locus is requesting permission to read pages and databases you select. You can revoke this access anytime.' },
+  gmail: { label: 'Gmail', icon: 'ti-mail', desc: 'Locus is requesting permission to read emails matching labels you choose. You can revoke this access anytime.' }
+};
+
+document.querySelectorAll('.connect-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const card = btn.closest('.source-card-row');
+    activeSource = card.getAttribute('data-source');
+    const meta = sourceMeta[activeSource];
+    oauthTitle.textContent = 'Connect to ' + meta.label;
+    oauthDesc.textContent = meta.desc;
+    oauthIcon.className = 'ti ' + meta.icon;
+    oauthOverlay.classList.add('open');
+  });
+});
+
+document.getElementById('oauth-deny-btn').addEventListener('click', () => {
+  oauthOverlay.classList.remove('open');
+  const card = document.getElementById('card-' + activeSource);
+  card.classList.add('error');
+  const statusLine = card.querySelector('.source-status-line');
+  statusLine.textContent = 'Permission denied';
+  statusLine.className = 'source-status-line err';
+  const btn = card.querySelector('.connect-btn');
+  btn.textContent = 'Try again';
+  btn.classList.add('retry');
+});
+
+document.getElementById('oauth-allow-btn').addEventListener('click', () => {
+  oauthOverlay.classList.remove('open');
+  const card = document.getElementById('card-' + activeSource);
+  const statusLine = card.querySelector('.source-status-line');
+  const btnSlot = card.querySelector('.connect-btn');
+  statusLine.textContent = 'Connecting...';
+  statusLine.className = 'source-status-line';
+  btnSlot.textContent = 'Connecting';
+  btnSlot.classList.add('connecting');
+  btnSlot.disabled = true;
+  setTimeout(() => {
+    card.classList.remove('error');
+    card.classList.add('connected');
+    statusLine.textContent = 'Connected just now';
+    statusLine.className = 'source-status-line ok';
+    btnSlot.replaceWith(Object.assign(document.createElement('span'), { className: 'connected-check', innerHTML: '<i class="ti ti-check"></i>Connected' }));
+    connectedCount++;
+    updateContinueState();
+  }, 900);
+});
+
+function updateContinueState() {
+  const continueBtn = document.getElementById('connect-continue-btn');
+  const hint = document.getElementById('required-hint');
+  if (connectedCount >= 1) {
+    continueBtn.disabled = false;
+    hint.textContent = connectedCount + ' source' + (connectedCount > 1 ? 's' : '') + ' connected';
+  } else {
+    continueBtn.disabled = true;
+    hint.textContent = 'Connect at least 1 source to continue';
+  }
+}
+
+document.getElementById('connect-continue-btn').addEventListener('click', () => { goTo('syncing', 2, 'locus.app/onboarding/syncing'); runSyncAnimation(); });
+document.getElementById('go-home-btn').addEventListener('click', () => goTo('home', null, 'locus.app/home'));
+
+// ===== SYNCING ANIMATION =====
+const syncSteps = [
+  document.getElementById('sync-step-1'),
+  document.getElementById('sync-step-2'),
+  document.getElementById('sync-step-3')
+];
+const syncProgressFill = document.getElementById('sync-progress-fill');
+const syncProgressPct = document.getElementById('sync-progress-pct');
+let syncTimers = [];
+
+function clearSyncTimers() { syncTimers.forEach(t => clearTimeout(t)); syncTimers = []; }
+
+const stepIcons = { 'sync-step-1': 'ti-download', 'sync-step-2': 'ti-sparkles', 'sync-step-3': 'ti-check' };
+
+function runSyncAnimation() {
+  clearSyncTimers();
+  syncSteps.forEach(s => {
+    s.classList.remove('active', 'done');
+    s.querySelector('.sync-step-icon i').className = 'ti ' + stepIcons[s.id];
+  });
+  syncProgressFill.style.width = '0%';
+  syncProgressPct.textContent = '0%';
+
+  const stageDurations = [1400, 1600, 900]; // ms per stage
+  const stageTargetPct = [35, 80, 100];
+  let elapsed = 0;
+
+  syncSteps.forEach((step, i) => {
+    const startDelay = elapsed;
+    elapsed += stageDurations[i];
+    syncTimers.push(setTimeout(() => {
+      syncSteps.forEach((s, j) => {
+        if (j < i) { s.classList.remove('active'); s.classList.add('done'); s.querySelector('.sync-step-icon i').className = 'ti ti-check'; }
+      });
+      step.classList.add('active');
+      syncProgressFill.style.width = stageTargetPct[i] + '%';
+      syncProgressPct.textContent = stageTargetPct[i] + '%';
+    }, startDelay));
+  });
+
+  syncTimers.push(setTimeout(() => {
+    syncSteps.forEach(s => { s.classList.remove('active'); s.classList.add('done'); s.querySelector('.sync-step-icon i').className = 'ti ti-check'; });
+    goTo('success', 2, 'locus.app/onboarding/success');
+  }, elapsed + 400));
+}
+
+document.getElementById('sync-skip-btn').addEventListener('click', () => {
+  clearSyncTimers();
+  goTo('home', null, 'locus.app/home');
+});
+
+// ===== TOP NAV (wired across all 3 app screens) =====
+['nav-home', 'nav-home-2', 'nav-home-3'].forEach(id => document.getElementById(id).addEventListener('click', () => goTo('home', null, 'locus.app/home')));
+['nav-log', 'nav-log-2', 'nav-log-3'].forEach(id => document.getElementById(id).addEventListener('click', () => goTo('log', null, 'locus.app/log')));
+['nav-pulse', 'nav-pulse-2', 'nav-pulse-3'].forEach(id => document.getElementById(id).addEventListener('click', () => goTo('pulse', null, 'locus.app/pulse')));
+
+// ===== HOME: composer / dashboard / answer =====
+const queryInput = document.getElementById('query-input');
+const askBtn = document.getElementById('ask-btn');
+const dashboardView = document.getElementById('dashboard-view');
+const answerView = document.getElementById('answer-view');
+const chips = document.getElementById('chips');
+const recentSearches = document.getElementById('recent-searches');
+const loadingState = document.getElementById('loading-state');
+const resultState = document.getElementById('result-state');
+const echoedQ = document.getElementById('echoed-q');
+
+function runQuery(q) {
+  if (!q || !q.trim()) return;
+  echoedQ.textContent = '"' + q + '"';
+  chips.style.display = 'none';
+  recentSearches.style.display = 'none';
+  dashboardView.style.display = 'none';
+  answerView.style.display = 'block';
+  loadingState.style.display = 'flex';
+  resultState.style.display = 'none';
+  queryInput.value = '';
+  setTimeout(() => { loadingState.style.display = 'none'; resultState.style.display = 'block'; }, 700);
+}
+
+askBtn.addEventListener('click', () => runQuery(queryInput.value));
+queryInput.addEventListener('keydown', e => { if (e.key === 'Enter') runQuery(queryInput.value); });
+document.querySelectorAll('.chip').forEach(chip => chip.addEventListener('click', () => runQuery(chip.getAttribute('data-q'))));
+document.querySelectorAll('.recent-search-row').forEach(row => row.addEventListener('click', () => runQuery(row.getAttribute('data-q'))));
+
+function backToDashboard() {
+  answerView.style.display = 'none';
+  dashboardView.style.display = 'block';
+  chips.style.display = 'flex';
+  recentSearches.style.display = 'block';
+}
+document.getElementById('back-btn').addEventListener('click', backToDashboard);
+document.getElementById('view-all-btn').addEventListener('click', () => goTo('log', null, 'locus.app/log'));
+
+// ===== HOME: recent captures expand/flag =====
+document.querySelectorAll('#home-view .capture-row').forEach(row => {
+  row.addEventListener('click', () => {
+    const item = row.closest('.capture-item');
+    const wasExpanded = item.classList.contains('expanded');
+    document.querySelectorAll('#home-view .capture-item').forEach(i => i.classList.remove('expanded'));
+    if (!wasExpanded) item.classList.add('expanded');
+  });
+});
+
+function wireFlagInteraction(scopeSelector) {
+  document.querySelectorAll(scopeSelector + ' .view-source-btn').forEach(btn => btn.addEventListener('click', e => e.stopPropagation()));
+  document.querySelectorAll(scopeSelector + ' .flag-toggle-btn').forEach(btn => btn.addEventListener('click', e => {
+    e.stopPropagation();
+    btn.closest('.capture-detail, .log-detail-content').querySelector('.flag-panel').classList.toggle('open');
+  }));
+  document.querySelectorAll(scopeSelector + ' .flag-reason-pill').forEach(pill => pill.addEventListener('click', e => {
+    e.stopPropagation();
+    const row = pill.closest('.flag-reason-row');
+    row.querySelectorAll('.flag-reason-pill').forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+  }));
+  document.querySelectorAll(scopeSelector + ' .flag-cancel-btn').forEach(btn => btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const panel = btn.closest('.flag-panel');
+    panel.classList.remove('open');
+    panel.querySelectorAll('.flag-reason-pill').forEach(p => p.classList.remove('selected'));
+    panel.querySelector('.flag-note').value = '';
+  }));
+  document.querySelectorAll(scopeSelector + ' .flag-submit-btn').forEach(btn => btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const panel = btn.closest('.flag-panel');
+    const detail = btn.closest('.capture-detail, .log-detail-content');
+    panel.classList.remove('open');
+    detail.querySelector('.flagged-note').classList.add('visible');
+    detail.querySelector('.flag-toggle-btn').classList.add('flag-active');
+  }));
+}
+wireFlagInteraction('#home-view');
+wireFlagInteraction('#log-view');
+
+// ===== DECISION LOG: filters + row expand =====
+let activeLogType = 'all';
+let showSuperseded = false;
+const logRows = document.querySelectorAll('.log-row');
+const logEmptyMsg = document.getElementById('log-empty-msg');
+
+function applyLogFilters() {
+  let visible = 0;
+  logRows.forEach(row => {
+    const matchType = activeLogType === 'all' || row.getAttribute('data-type') === activeLogType;
+    const isSuperseded = row.getAttribute('data-status') === 'superseded';
+    const matchStatus = showSuperseded || !isSuperseded;
+    const show = matchType && matchStatus;
+    row.style.display = show ? '' : 'none';
+    const detailRow = document.querySelector('[data-detail-for="' + row.getAttribute('data-row') + '"]');
+    if (!show) { detailRow.classList.remove('open'); detailRow.style.display = 'none'; }
+    if (show) visible++;
+  });
+  logEmptyMsg.style.display = visible === 0 ? 'block' : 'none';
+}
+
+document.querySelectorAll('.filter-pill[data-group="logtype"]').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.filter-pill[data-group="logtype"]').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    activeLogType = pill.getAttribute('data-value');
+    applyLogFilters();
+  });
+});
+document.getElementById('show-superseded').addEventListener('change', e => { showSuperseded = e.target.checked; applyLogFilters(); });
+
+logRows.forEach(row => {
+  row.addEventListener('click', () => {
+    const rowId = row.getAttribute('data-row');
+    const detailRow = document.querySelector('[data-detail-for="' + rowId + '"]');
+    const isOpen = detailRow.classList.contains('open');
+    document.querySelectorAll('.log-detail-row').forEach(d => { d.classList.remove('open'); d.style.display = 'none'; });
+    if (!isOpen) { detailRow.classList.add('open'); detailRow.style.display = 'table-row'; }
+  });
+});
+document.querySelectorAll('.log-detail-content').forEach(c => c.addEventListener('click', e => e.stopPropagation()));
+
+// ===== HOME capture rows -> jump to Decision Log =====
+document.querySelectorAll('#home-view .view-source-btn').forEach((btn, idx) => {
+  // already stopPropagation'd above; this is just the "view original" stub, no-op
+});
+
+// ===== PULSE: week nav, feedback, item click-through, view log link =====
+let weekOffset = 0;
+const weeks = [
+  { label: 'This week', range: 'Mar 10 – Mar 16' },
+  { label: 'Last week', range: 'Mar 3 – Mar 9' },
+  { label: '2 weeks ago', range: 'Feb 24 – Mar 2' }
+];
+const pulsePrev = document.getElementById('pulse-prev');
+const pulseNext = document.getElementById('pulse-next');
+pulsePrev.addEventListener('click', () => {
+  if (weekOffset < weeks.length - 1) {
+    weekOffset++;
+    document.querySelector('.pulse-week-label').textContent = weeks[weekOffset].label;
+    document.getElementById('pulse-date-range').textContent = weeks[weekOffset].range;
+    pulseNext.disabled = false;
+    pulsePrev.disabled = weekOffset === weeks.length - 1;
+  }
+});
+pulseNext.addEventListener('click', () => {
+  if (weekOffset > 0) {
+    weekOffset--;
+    document.querySelector('.pulse-week-label').textContent = weeks[weekOffset].label;
+    document.getElementById('pulse-date-range').textContent = weeks[weekOffset].range;
+    pulsePrev.disabled = false;
+    pulseNext.disabled = weekOffset === 0;
+  }
+});
+
+const thumbUp = document.getElementById('thumb-up');
+const thumbDown = document.getElementById('thumb-down');
+thumbUp.addEventListener('click', () => { thumbUp.classList.add('selected-up'); thumbDown.classList.remove('selected-down'); });
+thumbDown.addEventListener('click', () => { thumbDown.classList.add('selected-down'); thumbUp.classList.remove('selected-up'); });
+
+document.getElementById('pulse-to-log').addEventListener('click', () => goTo('log', null, 'locus.app/log'));
+document.querySelectorAll('.pulse-more-link').forEach(link => link.addEventListener('click', () => goTo('log', null, 'locus.app/log')));
+
+document.querySelectorAll('.pulse-item-text[data-log-target]').forEach(item => {
+  item.style.cursor = 'pointer';
+  item.addEventListener('click', () => {
+    const targetRow = item.getAttribute('data-log-target');
+    goTo('log', null, 'locus.app/log');
+    activeLogType = 'all';
+    document.querySelectorAll('.filter-pill[data-group="logtype"]').forEach(p => p.classList.remove('active'));
+    document.querySelector('.filter-pill[data-group="logtype"][data-value="all"]').classList.add('active');
+    showSuperseded = true;
+    document.getElementById('show-superseded').checked = true;
+    applyLogFilters();
+    document.querySelectorAll('.log-detail-row').forEach(d => { d.classList.remove('open'); d.style.display = 'none'; });
+    const detailRow = document.querySelector('[data-detail-for="' + targetRow + '"]');
+    detailRow.classList.add('open');
+    detailRow.style.display = 'table-row';
+    const row = document.querySelector('.log-row[data-row="' + targetRow + '"]');
+    setTimeout(() => {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.style.transition = 'background 0.3s';
+      row.style.background = '#fff4d6';
+      setTimeout(() => { row.style.background = ''; }, 1200);
+    }, 50);
+  });
+});
+
+// ===== HOME capture items -> jump to Decision Log (same pattern as Pulse) =====
+document.querySelectorAll('#home-view .capture-item[data-log-row]').forEach(item => {
+  const viewSourceBtn = item.querySelector('.view-source-btn');
+  if (viewSourceBtn) {
+    viewSourceBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetRow = item.getAttribute('data-log-row');
+      goTo('log', null, 'locus.app/log');
+      activeLogType = 'all';
+      document.querySelectorAll('.filter-pill[data-group="logtype"]').forEach(p => p.classList.remove('active'));
+      document.querySelector('.filter-pill[data-group="logtype"][data-value="all"]').classList.add('active');
+      showSuperseded = true;
+      document.getElementById('show-superseded').checked = true;
+      applyLogFilters();
+      document.querySelectorAll('.log-detail-row').forEach(d => { d.classList.remove('open'); d.style.display = 'none'; });
+      const detailRow = document.querySelector('[data-detail-for="' + targetRow + '"]');
+      detailRow.classList.add('open');
+      detailRow.style.display = 'table-row';
+      const row = document.querySelector('.log-row[data-row="' + targetRow + '"]');
+      setTimeout(() => {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        row.style.transition = 'background 0.3s';
+        row.style.background = '#fff4d6';
+        setTimeout(() => { row.style.background = ''; }, 1200);
+      }, 50);
+    });
+  }
+});
+</script>
+
+</body>
+</html>
